@@ -10,53 +10,53 @@ namespace EverFilter.Infra
 {
     public class FolderManager
     {
-        ISorter sorter;
-        string path;
+        readonly ISorter sorter;
+        readonly string basePath;
 
         public List<string> UnsupportedFiles { get; private set; }
 
-        public FolderManager(string path, ISorter sorter)
+        public FolderManager(string basePath, ISorter sorter)
         {
             this.sorter = sorter;
-            this.path = path;
+            this.basePath = basePath;
             UnsupportedFiles = new List<string>();
         }
 
         public bool Extract()
         {
-            if (!Directory.Exists(path))
+            UnsupportedFiles.Clear();
+
+            if (!Directory.Exists(basePath))
                 return false;
 
-            bool isSuccess = true;
+            var files = Directory.GetFiles(Path.GetFullPath(basePath));
 
-            var files = Directory.GetFiles(Path.GetFullPath(path));
+            bool isCompacted = Util.AllowedExtensions.Any(e => e.Equals(Path.GetExtension(files.FirstOrDefault())));
 
-            Parallel.ForEach(files, filePath =>
+            if (isCompacted)
             {
-                OpenArchive(ref isSuccess, filePath);
-            });
+                Parallel.ForEach(files, filePath =>
+                {
+                    OpenArchive(filePath);
+                });
+            }
+            //else
 
-            //foreach (var filePath in files)
-            //{
-            //    OpenArchive(ref isSuccess, filePath);
-            //}
-
-            return isSuccess;
+            return UnsupportedFiles.Count > 0; // Pode se tornar obsoleto
         }
 
-        private void OpenArchive(ref bool isSuccess, string filePath)
+        private void OpenArchive(string filePath)
         {
-            if (Util.AllowedExtensions.Any(e => e.Equals(Path.GetExtension(filePath))))
+            if (Util.AllowedExtensions.Any(e => e.Equals(Path.GetExtension(filePath)))) // Pode se tornar obsoleto
             {
                 using (ArchiveFile archive = new ArchiveFile(filePath))
                 {
                     sorter.Execute(archive);
                 }
             }
-            else
+            else // Pode se tornar obsoleto
             {
-                isSuccess = false;
-                UnsupportedFiles.Add(filePath);
+                UnsupportedFiles.Add(filePath); // Pode se tornar obsoleto
             }
         }
     }

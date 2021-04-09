@@ -8,5 +8,6 @@ namespace EverFilter
     public interface ISorter
     {
         void Execute(ArchiveFile archive);
+        //void Execute(string[] files);
     }
 }

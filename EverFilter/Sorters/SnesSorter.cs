@@ -8,8 +8,12 @@ using System.Threading.Tasks;
 
 namespace EverFilter.Sorters
 {
-    public class SnesSorter : ISorter
+    public class SnesSorter : AbstractSorter, ISorter
     {
+        public SnesSorter(string destinationPath) : base(destinationPath)
+        {
+        }
+
         public void Execute(ArchiveFile archive)
         {
             var usa = GetSubset(archive, rom => rom.FileName.Contains("(U)") || rom.FileName.Contains("(JU)"));
@@ -30,6 +34,8 @@ namespace EverFilter.Sorters
 
             if (isEurope)
                 return;
+
+            var translations = GetSubset(archive, rom => rom.FileName.Contains("T+Eng") || rom.FileName.Contains("T-Eng"));
 
             isJapan = Sort(japan, "All Official Releases");
 
@@ -128,19 +134,6 @@ namespace EverFilter.Sorters
             return rom;
         }
 
-        private void Save(Entry entry, string folderName)
-        {
-            var validPath = Path.Combine(Util.BasePath, folderName);
-            if (!Directory.Exists(validPath))
-                Directory.CreateDirectory(validPath);
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                entry.Extract(ms);
-                FileStream file = new FileStream(Path.Combine(validPath, entry.FileName), FileMode.Create);
-                ms.WriteTo(file);
-                file.Close();
-            }
-        }
+        //private void SaveTranslations
     }
 }
