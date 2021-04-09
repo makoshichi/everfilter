@@ -16,10 +16,10 @@ namespace EverFilter.Sorters
 
         public void Execute(ArchiveFile archive)
         {
-            var usa = GetSubset(archive, rom => rom.FileName.Contains("(U)") || rom.FileName.Contains("(JU)"));
-            var japan = GetSubset(archive, rom => rom.FileName.Contains("(J)") || rom.FileName.Contains("(ST)"));
-            var europe = GetSubset(archive, "(E)");
-            var hack = GetSubset(archive, "Hack)");
+            var usa = GetSubset(archive.Entries, rom => rom.FileName.Contains("(U)") || rom.FileName.Contains("(JU)"));
+            var japan = GetSubset(archive.Entries, rom => rom.FileName.Contains("(J)") || rom.FileName.Contains("(ST)"));
+            var europe = GetSubset(archive.Entries, "(E)");
+            var hack = GetSubset(archive.Entries, "Hack)");
 
             bool isUsa, isJapan, isEurope;
 
@@ -35,8 +35,6 @@ namespace EverFilter.Sorters
             if (isEurope)
                 return;
 
-            var translations = GetSubset(archive, rom => rom.FileName.Contains("T+Eng") || rom.FileName.Contains("T-Eng"));
-
             isJapan = Sort(japan, "All Official Releases");
 
             if (isJapan)
@@ -46,36 +44,22 @@ namespace EverFilter.Sorters
                 SortUnlicensed(archive.Entries, "Unknown");
         }
 
-        private IEnumerable<Entry> GetSubset(ArchiveFile archive, string region)
+        private bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder)
         {
-            return ((List<Entry>)archive.Entries).Where(rom => rom.FileName.Contains(region)).Select(x => x);
-        }
+            SortTranslations(archiveFiles);
 
-        private IEnumerable<Entry> GetSubset(ArchiveFile archive, Func<Entry, bool> predicate)
-        {
-            return ((List<Entry>)archive.Entries).Where(predicate).Select(x => x);
-        }
-
-        private bool Sort(IEnumerable<Entry> list, string targetFolder)
-        {
-            foreach (var entry in list)
+            foreach (var entry in archiveFiles)
             {
-                if (IsIgnore(entry.FileName, Util.BadRoms))
+                if (Ignore(entry.FileName, Util.BadRoms))
                     continue;
-                else if (IsIgnore(entry.FileName, Util.IgnoredTranslations))
+                else if (Ignore(entry.FileName, Util.Translations))
                     continue;
                 else
                 {
                     var rom = entry;
 
-                    if (IsDesiredTranslation(rom.FileName)) //Pega tradução apenas se estiver antes da rom oficial; traduções também deveriam levar a versão em consideração
-                    {
-                        Save(rom, "Translations");
-                        continue;
-                    }
-
-                    if (list.Any(rom => rom.FileName.Contains("(V1.0)")))
-                        rom = FindLatestVersion(list, 0);
+                    if (archiveFiles.Any(rom => rom.FileName.Contains("(V1.0)")))
+                        rom = FindLatestVersion(archiveFiles, 0);
 
                     Save(rom, targetFolder);
                     return true;
@@ -85,55 +69,43 @@ namespace EverFilter.Sorters
             return false;
         }
 
-        private void SortUnlicensed(IEnumerable<Entry> list, string targetFolder)
+        private void SortTranslations(IEnumerable<Entry> archiveFiles)
         {
-            Parallel.ForEach(list, entry =>
+            var translations = GetSubset(archiveFiles, rom => rom.FileName.Contains("T+Eng") || rom.FileName.Contains("T-Eng"));
+
+            Parallel.ForEach(translations, rom =>
             {
-                if (IsIgnore(entry.FileName, Util.BadRoms))
-                    return;
-                else if (IsIgnore(entry.FileName, Util.IgnoredTranslations))
+                if (Ignore(rom.FileName, Util.BadRoms))
                     return;
                 else
                 {
-                    if (entry.FileName.Contains("(A&S NES Hack)"))
+                    if (archiveFiles.Any(rom => rom.FileName.Contains("(V1.0)")))
+                        rom = FindLatestVersion(archiveFiles, 0);
+
+                    Save(rom, "Translations");
+                }
+            });
+        }
+
+        private void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder)
+        {
+            Parallel.ForEach(archiveFiles, file =>
+            {
+                if (Ignore(file.FileName, Util.BadRoms))
+                    return;
+                else if (Ignore(file.FileName, Util.Translations))
+                    return;
+                else
+                {
+                    if (file.FileName.Contains("(A&S NES Hack)"))
                     {
                         if (!targetFolder.Contains("A&S NES Hack"))
                             targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
                     }
 
-                    Save(entry, targetFolder);
+                    Save(file, targetFolder);
                 }
             });
         }
-
-        private bool IsIgnore(string name, string[] list)
-        {
-            foreach (var marker in list)
-            {
-                if (name.Contains(marker))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool IsDesiredTranslation(string name)
-        {
-            return IsIgnore(name, Util.DesiredTranslations);
-        }
-
-        private Entry FindLatestVersion(IEnumerable<Entry> archive, int minor)
-        {
-            Entry rom = archive.Where(rom => rom.FileName.Contains($"(V1.{minor})")).FirstOrDefault();
-            minor++;
-            var version = $"(V1.{minor})"; // Star Fox não possui versão 1.1 USA, não permitindo que a versão 1.2 seja encontrada
-
-            if (archive.Any(rom => rom.FileName.Contains(version)))
-                rom = FindLatestVersion(archive, minor);
-
-            return rom;
-        }
-
-        //private void SaveTranslations
     }
 }

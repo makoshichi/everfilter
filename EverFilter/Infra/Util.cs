@@ -44,9 +44,9 @@ namespace EverFilter.Infra
             "[z"
         };
 
-        public static string[] IgnoredTranslations => new string[]
+        public static string[] Translations => new string[]
         {
-            //"T+Eng",
+            "T+Eng",
             "T+Kor",
             "T+Spa",
             "T+Ita",
@@ -55,6 +55,7 @@ namespace EverFilter.Infra
             "T+Fre",
             "T+Ger",
             "T+Por",
+            "T-Eng",
             "T-Kor",
             "T-Spa",
             "T-Ita",
@@ -63,12 +64,6 @@ namespace EverFilter.Infra
             "T-Fre",
             "T-Ger",
             "T-Por"
-        };
-
-        public static string[] DesiredTranslations => new string[]
-        {
-            "T+Eng",
-            "T-Eng"
         };
     }
 }
