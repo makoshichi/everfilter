@@ -91,6 +91,7 @@ namespace EverFilter.Sorters
             // Castlevania 3 (J)
             // Solbrain
             // Magic John (Totally Rad)
+            // Rockman + Mega Man
             throw new NotImplementedException();
         }
     }
