@@ -123,7 +123,7 @@ namespace EverFilter.Sorters
             return rom;
         }
 
-        // Verificar por que algumas ROMs são salvas com 0 bytes
+        // Verificar por que algumas ROMs são salvas com 0 bytes (apenas ocorre com hacks e traduções)
         protected void Save(Entry entry, string folderName)
         {
             var validPath = Path.Combine(destinationPath, folderName);
