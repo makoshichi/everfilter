@@ -43,7 +43,7 @@ namespace EverFilter.Sorters
                 SortUnlicensed(archive.Entries, "Unknown");
         }
 
-        protected bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder)
+        protected bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder) //Max 254 per folder
         {
             SortTranslations(archiveFiles);
 
@@ -68,7 +68,7 @@ namespace EverFilter.Sorters
             return false;
         }
 
-        protected override void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder)
+        protected override void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder) //Max 254 per folder
         {
             Parallel.ForEach(archiveFiles, file =>
             {
