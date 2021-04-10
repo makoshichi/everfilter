@@ -8,9 +8,31 @@ namespace EverFilter
     {
         static void Main(string[] args)
         {
-            //var manager = new FolderManager(Util.BaseSnesPath, new SnesSorter(Util.DestinationSnesPath));
-            var manager = new FolderManager(Util.BaseNesPath, new SnesSorter(Util.DestinationNesPath));
+            var choice = Menu();
+
+            var manager = choice == 1 ? new FolderManager(Util.BaseNesPath, new SnesSorter(Util.DestinationNesPath)) 
+                : new FolderManager(Util.BaseSnesPath, new SnesSorter(Util.DestinationSnesPath));
             manager.Extract();
+        }
+
+        static int Menu()
+        {
+            Console.WriteLine("1 - NES");
+            Console.WriteLine("2 - SNES");
+            var input = Console.ReadLine();
+
+            int choice;
+            if (!int.TryParse(input, out choice))
+                return Menu();
+
+            if (choice != 1 && choice != 2)
+                return Menu();
+
+            return choice;
+
+
+
+
         }
     }
 }
