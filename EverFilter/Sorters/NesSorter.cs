@@ -43,7 +43,9 @@ namespace EverFilter.Sorters
                 SortUnlicensed(archive.Entries, "Unknown");
         }
 
-        protected bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder) //Max 254 per folder
+        //Max 254 per folder
+        //Sort Prototype from official release
+        protected bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder) 
         {
             SortTranslations(archiveFiles);
 
