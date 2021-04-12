@@ -35,10 +35,17 @@ namespace EverFilter.Infra
 
             if (isCompacted)
             {
+                //foreach (var filePath in files)
+                //{
+                //    OpenArchive(filePath);
+                //}
+
                 Parallel.ForEach(files, filePath =>
                 {
                     OpenArchive(filePath);
                 });
+
+                sorter.HandleSpecialCases();
             }
             //else
 

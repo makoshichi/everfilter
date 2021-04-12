@@ -55,6 +55,12 @@ namespace EverFilter.Infra
             "T+Fre",
             "T+Ger",
             "T+Por",
+            "T+Thai",
+            "T+Fin",
+            "T+Swe",
+            "T+Pol",
+            "T+Bra",
+            "T+Gre",
             "T-Eng",
             "T-Kor",
             "T-Spa",
@@ -63,7 +69,14 @@ namespace EverFilter.Infra
             "T-Rus",
             "T-Fre",
             "T-Ger",
-            "T-Por"
+            "T-Por",
+            "T-Thai",
+            "T-Fin",
+            "T-Swe",
+            "T-Pol",
+            "T-Bra",
+            "T-Gre",
+            "Retrans"
         };
     }
 }

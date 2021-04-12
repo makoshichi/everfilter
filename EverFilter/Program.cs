@@ -10,7 +10,7 @@ namespace EverFilter
         {
             var choice = Menu();
 
-            var manager = choice == 1 ? new FolderManager(Util.BaseNesPath, new SnesSorter(Util.DestinationNesPath)) 
+            var manager = choice == 1 ? new FolderManager(Util.BaseNesPath, new NesSorter(Util.DestinationNesPath)) 
                 : new FolderManager(Util.BaseSnesPath, new SnesSorter(Util.DestinationSnesPath));
             manager.Extract();
         }

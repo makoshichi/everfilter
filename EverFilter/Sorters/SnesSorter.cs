@@ -16,69 +16,103 @@ namespace EverFilter.Sorters
 
         public void Execute(ArchiveFile archive)
         {
-            var usa = GetSubset(archive.Entries, rom => rom.FileName.Contains("(U)") || rom.FileName.Contains("(JU)"));
-            var japan = GetSubset(archive.Entries, rom => rom.FileName.Contains("(J)") || rom.FileName.Contains("(ST)"));
-            var europe = GetSubset(archive.Entries, "(E)");
-            var hack = GetSubset(archive.Entries, "Hack)");
+            var filteredFiles = archive.Entries.Where(rom => !Util.BadRoms.Any(b => rom.FileName.Contains(b)));
+            SortTranslations(filteredFiles);
 
-            bool isUsa, isJapan, isEurope;
+            filteredFiles = filteredFiles.Where(rom => !Util.Translations.Any(t => rom.FileName.Contains(t))).Select(x => x);
+
+            var usa = GetSubset(filteredFiles, GetFilter("(U)", "(JU)"));
+            var japan = GetSubset(filteredFiles, GetFilter("(J)", "(ST)"));
+            var europe = GetSubset(filteredFiles, rom => rom.FileName.Contains("(E)") && !rom.FileName.Contains("Hack"));
+            var hack = GetSubset(filteredFiles, "Hack)");
 
             SortUnlicensed(hack, "Hacks");
 
-            isUsa = Sort(usa, "All Official Releases");
-
-            if (isUsa)
-                return;
-
-            isEurope = Sort(europe, "All Official Releases");
-
-            if (isEurope)
-                return;
-
-            isJapan = Sort(japan, "All Official Releases");
-
-            if (isJapan)
-                return;
-
-            if (hack.Count() == 0)
-                SortUnlicensed(archive.Entries, "Unknown");
-        }
-
-        protected bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder)
-        {
-            SortTranslations(archiveFiles);
-
-            foreach (var entry in archiveFiles)
+            if (usa.Count() > 0)
             {
-                if (Ignore(entry.FileName, Util.BadRoms))
-                    continue;
-                else if (Ignore(entry.FileName, Util.Translations))
-                    continue;
-                else
-                {
-                    var rom = entry;
-
-                    if (archiveFiles.Any(rom => rom.FileName.Contains("(V1.0)")))
-                        rom = FindLatestVersion(archiveFiles, 0);
-
-                    Save(rom, targetFolder);
-                    return true;
-                }
+                //Insert(usa, "All Official Releases");
+                Sort(usa, "All Official Releases");
+                return;
             }
 
+            if (europe.Count() > 0)
+            {
+                //Insert(europe, "All Official Releases");
+                Sort(europe, "All Official Releases");
+                return;
+            }
+
+            if (japan.Count() > 0)
+            {
+                Insert(japan, "All Official Releases");
+                return;
+            }
+
+            if (hack.Count() == 0)
+                SortUnlicensed(filteredFiles, "Unknown");
+        }
+
+
+        public void HandleSpecialCases()
+        {
+            // Star Fox V1.2
+            // Final Fantasy III (U) (V1.1) (Retrans 2.00a by Sky Render)
+        }
+
+        private Func<Entry, bool> GetFilter(string marker1, string marker2)
+        {
+            return rom => (rom.FileName.Contains(marker1) || rom.FileName.Contains(marker2)) && !rom.FileName.Contains("Hack");
+        }
+
+        private void Insert(IEnumerable<Entry> archiveFiles, string targetFolder)
+        {
+            Parallel.ForEach(archiveFiles, entry =>
+            {
+                var rom = entry;
+                CheckForRevision(archiveFiles, ref rom);
+
+                var isBS = rom.FileName.Contains("BS ");
+
+                Save(rom, !isBS ? targetFolder : Path.Combine(targetFolder, "Broadcast Satellite"));
+            });
+        }
+
+        private bool Sort(IEnumerable<Entry> archiveFiles, string targetFolder)
+        {
+            foreach (var entry in archiveFiles)
+            {
+                var rom = entry;
+                CheckForRevision(archiveFiles, ref rom);
+                Save(rom, targetFolder);
+                return true;
+            }
             return false;
         }
 
-        protected override void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder)
+        protected override void CheckForRevision(IEnumerable<Entry> archiveFiles, ref Entry rom)
+        {
+            if (archiveFiles.Any(rom => rom.FileName.Contains("(V1.0)")))
+                rom = FindLatestVersion(archiveFiles, 0);
+        }
+
+        protected override string GetVersion(IEnumerable<Entry> archiveFiles, ref int minor, out Entry rom)
+        {
+            int val = minor;
+            rom = archiveFiles.Where(rom => rom.FileName.Contains($"(V1.{val})")).FirstOrDefault();
+            minor++;
+            return $"(V1.{minor})";
+        }
+
+        private void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder) //Maybe virtual
         {
             Parallel.ForEach(archiveFiles, file =>
             {
-                if (Ignore(file.FileName, Util.BadRoms))
-                    return;
-                else if (Ignore(file.FileName, Util.Translations))
-                    return;
-                else
-                {
+                //if (Ignore(file.FileName, Util.BadRoms))
+                //    return;
+                //else if (Ignore(file.FileName, Util.Translations))
+                //    return;
+                //else
+                //{
                     if (file.FileName.Contains("(A&S NES Hack)"))
                     {
                         if (!targetFolder.Contains("A&S NES Hack"))
@@ -86,14 +120,8 @@ namespace EverFilter.Sorters
                     }
 
                     Save(file, targetFolder);
-                }
+                //}
             });
-        }
-
-        protected override void HandleSpecialCases()
-        {
-            // Star Fox V1.2
-            throw new NotImplementedException();
         }
     }
 }

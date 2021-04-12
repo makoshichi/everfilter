@@ -21,15 +21,14 @@ namespace EverFilter.Sorters
         {
             var translations = GetSubset(archiveFiles, rom => rom.FileName.Contains("T+Eng") || rom.FileName.Contains("T-Eng"));
 
+            // Talvez não usar parallel.ForEach
             Parallel.ForEach(translations, rom =>
             {
                 if (Ignore(rom.FileName, Util.BadRoms))
                     return;
                 else
                 {
-                    if (archiveFiles.Any(rom => rom.FileName.Contains("(V1.0)")))
-                        rom = FindLatestVersion(archiveFiles, 0);
-
+                    CheckForRevision(archiveFiles, ref rom);
                     Save(rom, "Translations");
                 }
             });
@@ -58,9 +57,12 @@ namespace EverFilter.Sorters
 
         protected Entry FindLatestVersion(IEnumerable<Entry> archiveFiles, int minor)
         {
-            Entry rom = archiveFiles.Where(rom => rom.FileName.Contains($"(V1.{minor})")).FirstOrDefault();
-            minor++;
-            var version = $"(V1.{minor})"; 
+            var version = GetVersion(archiveFiles, ref minor, out Entry rom);
+
+            //Entry rom = archiveFiles.Where(rom => rom.FileName.Contains($"(V1.{minor})")).FirstOrDefault();
+            //minor++;
+            //var version = $"(V1.{minor})";
+
 
             if (archiveFiles.Any(rom => rom.FileName.Contains(version)))
                 rom = FindLatestVersion(archiveFiles, minor);
@@ -84,8 +86,10 @@ namespace EverFilter.Sorters
             }
         }
 
-        protected abstract void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder);
+        protected abstract void CheckForRevision(IEnumerable<Entry> archiveFiles, ref Entry rom);
 
-        protected abstract void HandleSpecialCases();
+        protected abstract string GetVersion(IEnumerable<Entry> archiveFiles, ref int minor, out Entry rom);
+
+        //protected virtual void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder){ };
     }
 }
