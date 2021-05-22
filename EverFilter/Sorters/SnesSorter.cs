@@ -14,6 +14,8 @@ namespace EverFilter.Sorters
         {
         }
 
+        public string DestinationPath => destinationPath;
+
         public void Execute(ArchiveFile archive)
         {
             var filteredFiles = archive.Entries.Where(rom => !Util.BadRoms.Any(b => rom.FileName.Contains(b)));
@@ -26,30 +28,32 @@ namespace EverFilter.Sorters
             var europe = GetSubset(filteredFiles, rom => rom.FileName.Contains("(E)") && !rom.FileName.Contains("Hack"));
             var hack = GetSubset(filteredFiles, "Hack)");
 
-            SortUnlicensed(hack, "Hacks");
+            SortUnlicensed(hack, Util.Folder.Hacks);
 
             if (usa.Count() > 0)
             {
-                //Insert(usa, "All Official Releases");
-                Sort(usa, "All Official Releases");
+                Sort(usa, Util.Folder.AllOfficialReleases);
                 return;
             }
 
             if (europe.Count() > 0)
             {
-                //Insert(europe, "All Official Releases");
-                Sort(europe, "All Official Releases");
+                Sort(europe, Util.Folder.AllOfficialReleases);
                 return;
             }
 
             if (japan.Count() > 0)
             {
-                Insert(japan, "All Official Releases");
+                Insert(japan, Util.Folder.AllOfficialReleases);
                 return;
             }
 
-            if (hack.Count() == 0)
-                SortUnlicensed(filteredFiles, "Unknown");
+            //Task.Factory.StartNew(() =>
+            //{
+            //    if (hack.Count() == 0)
+            //        SortUnlicensed(filteredFiles, Util.Folder.Unknown);
+            //});
+
         }
 
 
@@ -66,14 +70,14 @@ namespace EverFilter.Sorters
 
         private void Insert(IEnumerable<Entry> archiveFiles, string targetFolder)
         {
-            Parallel.ForEach(archiveFiles, entry =>
+            archiveFiles.ToList().ForEach(entry =>
             {
                 var rom = entry;
                 CheckForRevision(archiveFiles, ref rom);
 
                 var isBS = rom.FileName.Contains("BS ");
 
-                Save(rom, !isBS ? targetFolder : Path.Combine(targetFolder, "Broadcast Satellite"));
+                Save(rom, !isBS ? targetFolder : Path.Combine(targetFolder, Util.Folder.BroadcastSatellite));
             });
         }
 
@@ -103,24 +107,29 @@ namespace EverFilter.Sorters
             return $"(V1.{minor})";
         }
 
+        //SLOW
         private void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder) //Maybe virtual
         {
-            Parallel.ForEach(archiveFiles, file =>
+            archiveFiles.ToList().ForEach(file =>
             {
-                //if (Ignore(file.FileName, Util.BadRoms))
-                //    return;
-                //else if (Ignore(file.FileName, Util.Translations))
-                //    return;
-                //else
-                //{
-                    if (file.FileName.Contains("(A&S NES Hack)"))
-                    {
-                        if (!targetFolder.Contains("A&S NES Hack"))
-                            targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
-                    }
+                if (file.FileName.Contains("(A&S NES Hack)"))
+                {
+                    if (!targetFolder.Contains("A&S NES Hack"))
+                        targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
+                }
 
-                    Save(file, targetFolder);
-                //}
+                //Save(file, targetFolder);
+                var validPath = Path.Combine(destinationPath, targetFolder);
+                if (!Directory.Exists(validPath))
+                    Directory.CreateDirectory(validPath);
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    file.Extract(ms);
+                    FileStream fs = new FileStream(Path.Combine(validPath, file.FileName), FileMode.Create);
+                    ms.WriteTo(fs);
+                    fs.Close();
+                }
             });
         }
     }

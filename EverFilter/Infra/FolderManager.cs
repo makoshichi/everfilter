@@ -19,15 +19,30 @@ namespace EverFilter.Infra
         {
             this.sorter = sorter;
             this.basePath = basePath;
+            ClearFolders();
             UnsupportedFiles = new List<string>();
+        }
+
+        private void ClearFolders()
+        {
+            //var path = Path.Combine(sorter.DestinationPath, Util.Folder.AllOfficialReleases);
+            //File.Delete(path);
+            //path = Path.Combine(sorter.DestinationPath, Util.Folder.Translations);
+            //File.Delete(path);
+            //path = Path.Combine(sorter.DestinationPath, Util.Folder.Hacks);
+            //File.Delete(path);
+            //path = Path.Combine(sorter.DestinationPath, Util.Folder.Unknown);
+            //File.Delete(path);
         }
 
         public bool Extract()
         {
             UnsupportedFiles.Clear();
 
-            if (!Directory.Exists(basePath))
-                return false;
+            if (Directory.Exists(basePath))
+                ClearFolders();
+            else
+                Directory.CreateDirectory(basePath);
 
             var files = Directory.GetFiles(Path.GetFullPath(basePath));
 
@@ -35,15 +50,15 @@ namespace EverFilter.Infra
 
             if (isCompacted)
             {
-                //foreach (var filePath in files)
-                //{
-                //    OpenArchive(filePath);
-                //}
-
-                Parallel.ForEach(files, filePath =>
+                foreach (var filePath in files)
                 {
                     OpenArchive(filePath);
-                });
+                }
+
+                //Parallel.ForEach(files, filePath =>
+                //{
+                //    OpenArchive(filePath);
+                //});
 
                 sorter.HandleSpecialCases();
             }

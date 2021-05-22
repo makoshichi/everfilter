@@ -12,6 +12,8 @@ namespace EverFilter.Sorters
     {
         protected string destinationPath;
 
+        protected object lockObj = new object();
+
         public AbstractSorter(string destinationPath)
         {
             this.destinationPath = destinationPath;
@@ -21,17 +23,28 @@ namespace EverFilter.Sorters
         {
             var translations = GetSubset(archiveFiles, rom => rom.FileName.Contains("T+Eng") || rom.FileName.Contains("T-Eng"));
 
-            // Talvez não usar parallel.ForEach
-            Parallel.ForEach(translations, rom =>
+            translations.ToList().ForEach(rom =>
             {
                 if (Ignore(rom.FileName, Util.BadRoms))
                     return;
                 else
                 {
                     CheckForRevision(archiveFiles, ref rom);
-                    Save(rom, "Translations");
+                    Save(rom, Util.Folder.Translations);
                 }
             });
+
+            // Talvez não usar parallel.ForEach
+            //Parallel.ForEach(translations, rom =>
+            //{
+            //    if (Ignore(rom.FileName, Util.BadRoms))
+            //        return;
+            //    else
+            //    {
+            //        CheckForRevision(archiveFiles, ref rom);
+            //        Save(rom, Util.Folder.Translations);
+            //    }
+            //});
         }
 
         protected IEnumerable<Entry> GetSubset(IEnumerable<Entry> archiveFiles, string region)

@@ -9,5 +9,6 @@ namespace EverFilter
     {
         void Execute(ArchiveFile archive);
         void HandleSpecialCases();
+        string DestinationPath { get; }
     }
 }

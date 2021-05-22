@@ -7,10 +7,10 @@ namespace EverFilter.Infra
     public static class Util
     {
         public static string BaseSnesPath => @"D:\Games\Consoles\SNES\Full Romset";
-        public static string DestinationSnesPath => @"D:\Games\Consoles\SNES\Everdrive Content";
+        public static string DestinationSnesPath => @"D:\Games\Consoles\SNES\Sorter Output";
 
         public static string BaseNesPath => @"D:\Games\Consoles\NES\Full ROMset - Nintendo NES\Full - Truckload of Hacks Edition";
-        public static string DestinationNesPath => @"D:\Games\Consoles\NES\Everdrive Content";
+        public static string DestinationNesPath => @"D:\Games\Consoles\NES\\Sorter Output";
 
 
         public static string[] AllowedExtensions => new string[] { ".zip", ".7z", ".rar" };
@@ -78,5 +78,14 @@ namespace EverFilter.Infra
             "T-Gre",
             "Retrans"
         };
+
+        public static class Folder
+        {
+            public static string AllOfficialReleases => "All Official Releases";
+            public static string Hacks => "Hacks";
+            public static string Unknown => "Unknown";
+            public static string Translations => "Translations";
+            public static string BroadcastSatellite => "Broadcast Satellite";
+        }
     }
 }

@@ -16,6 +16,8 @@ namespace EverFilter.Sorters
         {
         }
 
+        public string DestinationPath => destinationPath;
+
         public void Execute(ArchiveFile archive)
         {
             var usa = GetSubset(archive.Entries, rom => rom.FileName.Contains("(U)") || rom.FileName.Contains("(JU)") || rom.FileName.Contains("(W)"));
@@ -27,17 +29,17 @@ namespace EverFilter.Sorters
 
             //SortUnlicensed(hack, "Hacks");
 
-            isUsa = Sort(usa, "All Official Releases");
+            isUsa = Sort(usa, Util.Folder.AllOfficialReleases);
 
             if (isUsa)
                 return;
 
-            isEurope = Sort(europe, "All Official Releases");
+            isEurope = Sort(europe, Util.Folder.AllOfficialReleases);
 
             if (isEurope)
                 return;
 
-            isJapan = Sort(japan, "All Official Releases");
+            isJapan = Sort(japan, Util.Folder.AllOfficialReleases);
 
             if (isJapan)
                 return;
