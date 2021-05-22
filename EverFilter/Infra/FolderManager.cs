@@ -50,35 +50,30 @@ namespace EverFilter.Infra
 
             if (isCompacted)
             {
-                foreach (var filePath in files)
+                Parallel.ForEach(files, filePath =>
                 {
                     OpenArchive(filePath);
-                }
-
-                //Parallel.ForEach(files, filePath =>
-                //{
-                //    OpenArchive(filePath);
-                //});
+                });
 
                 sorter.HandleSpecialCases();
             }
             //else
 
-            return UnsupportedFiles.Count > 0; // Pode se tornar obsoleto
+            return UnsupportedFiles.Count > 0; 
         }
 
         private void OpenArchive(string filePath)
         {
-            if (Util.AllowedExtensions.Any(e => e.Equals(Path.GetExtension(filePath)))) // Pode se tornar obsoleto
+            if (Util.AllowedExtensions.Any(e => e.Equals(Path.GetExtension(filePath)))) 
             {
                 using (ArchiveFile archive = new ArchiveFile(filePath))
                 {
                     sorter.Execute(archive);
                 }
             }
-            else // Pode se tornar obsoleto
+            else 
             {
-                UnsupportedFiles.Add(filePath); // Pode se tornar obsoleto
+                UnsupportedFiles.Add(filePath); 
             }
         }
     }
