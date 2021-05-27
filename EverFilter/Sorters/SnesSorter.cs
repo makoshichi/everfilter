@@ -48,6 +48,9 @@ namespace EverFilter.Sorters
                 return;
             }
 
+            if (hack.Count() == 0)
+                SortUnlicensed(filteredFiles, Util.Folder.Unknown);
+
             //Task.Factory.StartNew(() =>
             //{
             //    if (hack.Count() == 0)
@@ -85,9 +88,9 @@ namespace EverFilter.Sorters
         {
             foreach (var entry in archiveFiles)
             {
-                var rom = entry;
-                CheckForRevision(archiveFiles, ref rom);
-                Save(rom, targetFolder);
+                var file = entry;
+                CheckForRevision(archiveFiles, ref file);
+                Save(file, targetFolder);
                 return true;
             }
             return false;
@@ -107,12 +110,39 @@ namespace EverFilter.Sorters
             return $"(V1.{minor})";
         }
 
+        object monitor = new object();
+
         //SLOW
         private void SortUnlicensed(IEnumerable<Entry> archiveFiles, string targetFolder) //Maybe virtual
         {
-            archiveFiles.ToList().ForEach(file =>
+            //Parallel.ForEach(archiveFiles, entry =>
+            //{
+            //    if (entry.FileName.Contains("(A&S NES Hack)"))
+            //    {
+            //        if (!targetFolder.Contains("A&S NES Hack"))
+            //            targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
+            //    }
+
+            //    //Save(file, targetFolder);
+            //    var validPath = Path.Combine(destinationPath, targetFolder);
+            //    if (!Directory.Exists(validPath))
+            //        Directory.CreateDirectory(validPath);
+
+            //    lock (monitor)
+            //    {
+            //        using (MemoryStream ms = new MemoryStream())
+            //        {
+            //            entry.Extract(ms);
+            //            FileStream fs = new FileStream(Path.Combine(validPath, entry.FileName), FileMode.Create);
+            //            ms.WriteTo(fs);
+            //            fs.Close();
+            //        }
+            //    }
+            //});
+
+            archiveFiles.ToList().ForEach(entry =>
             {
-                if (file.FileName.Contains("(A&S NES Hack)"))
+                if (entry.FileName.Contains("(A&S NES Hack)"))
                 {
                     if (!targetFolder.Contains("A&S NES Hack"))
                         targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
@@ -125,12 +155,57 @@ namespace EverFilter.Sorters
 
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    file.Extract(ms);
-                    FileStream fs = new FileStream(Path.Combine(validPath, file.FileName), FileMode.Create);
+                    entry.Extract(ms);
+                    FileStream fs = new FileStream(Path.Combine(validPath, entry.FileName), FileMode.Create);
                     ms.WriteTo(fs);
                     fs.Close();
                 }
             });
+
+            //Parallel.ForEach(archiveFiles, entry =>
+            //{
+            //    if (entry.FileName.Contains("(A&S NES Hack)"))
+            //    {
+            //        if (!targetFolder.Contains("A&S NES Hack"))
+            //            targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
+            //    }
+
+            //    //Save(file, targetFolder);
+            //    var validPath = Path.Combine(destinationPath, targetFolder);
+            //    if (!Directory.Exists(validPath))
+            //        Directory.CreateDirectory(validPath);
+
+            //    return entry;
+            //    //using (MemoryStream ms = new MemoryStream())
+            //    //{
+            //    //    entry.Extract(ms);
+            //    //    FileStream fs = new FileStream(Path.Combine(validPath, entry.FileName), FileMode.Create);
+            //    //    ms.WriteTo(fs);
+            //    //    fs.Close();
+            //    //}
+            //});
+
+            //archiveFiles.ToList().ForEach(entry =>
+            //{
+            //    if (entry.FileName.Contains("(A&S NES Hack)"))
+            //    {
+            //        if (!targetFolder.Contains("A&S NES Hack"))
+            //            targetFolder = Path.Combine(targetFolder, "A&S NES Hacks");
+            //    }
+
+            //    //Save(file, targetFolder);
+            //    var validPath = Path.Combine(destinationPath, targetFolder);
+            //    if (!Directory.Exists(validPath))
+            //        Directory.CreateDirectory(validPath);
+
+            //    using (MemoryStream ms = new MemoryStream())
+            //    {
+            //        entry.Extract(ms);
+            //        FileStream fs = new FileStream(Path.Combine(validPath, entry.FileName), FileMode.Create);
+            //        ms.WriteTo(fs);
+            //        fs.Close();
+            //    }
+            //});
         }
     }
 }
